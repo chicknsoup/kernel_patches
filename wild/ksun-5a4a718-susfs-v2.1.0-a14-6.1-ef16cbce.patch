@@ -2,7 +2,7 @@ diff --git a/kernel/Kbuild b/kernel/Kbuild
 index 0bf1f25ed..e2cc24a0e 100644
 --- a/kernel/Kbuild
 +++ b/kernel/Kbuild
-@@ -3,17 +3,7 @@ kernelsu-objs := core/init.o
+@@ -3,17 +3,8 @@ kernelsu-objs := core/init.o
  kernelsu-objs += feature/kernel_umount.o
  kernelsu-objs += feature/sucompat.o
  
