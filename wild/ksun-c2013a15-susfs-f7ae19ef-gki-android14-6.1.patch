@@ -432,7 +432,7 @@ index 3a48d8ce..5956083a 100644
  	pr_info("handle umount for uid: %d, pid: %d\n", new_uid, current->pid);
  
 diff --git a/kernel/feature/selinux_hide.c b/kernel/feature/selinux_hide.c
-index 36601198..66e3b4eb 100644
+index 36601198..8d553c0f 100644
 --- a/kernel/feature/selinux_hide.c
 +++ b/kernel/feature/selinux_hide.c
 @@ -14,6 +14,7 @@
@@ -860,7 +860,21 @@ index 36601198..66e3b4eb 100644
  };
  
  void ksu_selinux_hide_handle_second_stage()
-@@ -501,7 +235,6 @@ void __exit ksu_selinux_hide_exit()
+@@ -489,11 +223,8 @@ void __init ksu_selinux_hide_init()
+     if (ksu_register_feature_handler(&selinux_hide_handler)) {
+         pr_err("Failed to register selinux_hide feature handler\n");
+     }
+-    if (ksu_late_loaded) {
+-        initialize_fake_status();
+-    } else {
+-        static_key_enable(&fake_status_initialize_key.key);
+-    }
++
++    static_key_enable(&fake_status_initialize_key.key);
+     hook_selinux_status_open();
+ }
+ 
+@@ -501,7 +232,6 @@ void __exit ksu_selinux_hide_exit()
  {
      mutex_lock(&selinux_hide_mutex);
      if (ksu_selinux_hide_running) {
@@ -868,7 +882,7 @@ index 36601198..66e3b4eb 100644
          ksu_selinux_hide_running = false;
      }
      mutex_unlock(&selinux_hide_mutex);
-@@ -515,15 +248,15 @@ void __exit ksu_selinux_hide_exit()
+@@ -515,15 +245,15 @@ void __exit ksu_selinux_hide_exit()
  
  void ksu_selinux_hide_drop_backup_if_unused()
  {
@@ -893,7 +907,7 @@ index 36601198..66e3b4eb 100644
  }
  
  #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 6, 0)
-@@ -531,118 +264,118 @@ void ksu_selinux_hide_drop_backup_if_unused()
+@@ -531,118 +261,118 @@ void ksu_selinux_hide_drop_backup_if_unused()
   * Caveat:  Mutates scontext.
   */
  static int string_to_context_struct(struct policydb *pol, struct sidtab *sidtabp, char *scontext, struct context *ctx,
@@ -1101,7 +1115,7 @@ index 36601198..66e3b4eb 100644
  }
  
  /*
-@@ -654,158 +387,158 @@ out:
+@@ -654,158 +384,158 @@ out:
   */
  static int context_struct_to_string(struct policydb *p, struct context *context, char **scontext, u32 *scontext_len)
  {
@@ -1376,7 +1390,7 @@ index 36601198..66e3b4eb 100644
  }
  
  /*
-@@ -820,171 +553,171 @@ static void __nocfi type_attribute_bounds_av(struct policydb *policydb, struct c
+@@ -820,171 +550,171 @@ static void __nocfi type_attribute_bounds_av(struct policydb *policydb, struct c
   * constraint_expr_eval should pass in NULL for xcontext.
   */
  static int constraint_expr_eval(struct policydb *policydb, struct context *scontext, struct context *tcontext,
@@ -1712,7 +1726,7 @@ index 36601198..66e3b4eb 100644
  }
  
  /*
-@@ -992,144 +725,144 @@ static int constraint_expr_eval(struct policydb *policydb, struct context *scont
+@@ -992,144 +722,144 @@ static int constraint_expr_eval(struct policydb *policydb, struct context *scont
   * structure pair for the permissions in a particular class.
   */
  static void context_struct_compute_av(struct policydb *policydb, struct context *scontext, struct context *tcontext,
@@ -1992,6 +2006,20 @@ index 36601198..66e3b4eb 100644
 -#endif
 +#endif
 \ No newline at end of file
+diff --git a/kernel/feature/selinux_hide.h b/kernel/feature/selinux_hide.h
+index 5a043710..82732484 100644
+--- a/kernel/feature/selinux_hide.h
++++ b/kernel/feature/selinux_hide.h
+@@ -1,6 +1,9 @@
+ #ifndef __KSU_H_SELINUX_HIDE
+ #define __KSU_H_SELINUX_HIDE
+ 
++#define KSU_PATCH_TEXT_FLUSH_DCACHE 1
++#define KSU_PATCH_TEXT_FLUSH_ICACHE 2
++
+ void ksu_selinux_hide_init();
+ void ksu_selinux_hide_exit();
+ void ksu_selinux_hide_drop_backup_if_unused();
 diff --git a/kernel/feature/sucompat.c b/kernel/feature/sucompat.c
 index d5501a9b..b2264194 100644
 --- a/kernel/feature/sucompat.c
