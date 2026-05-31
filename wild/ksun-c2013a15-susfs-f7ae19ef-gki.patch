@@ -2041,7 +2041,7 @@ index 62cfaabf..d5ab2519 100644
 +							 struct user_arg_ptr *envp, int *flags);
  #endif
 diff --git a/kernel/runtime/ksud_integration.c b/kernel/runtime/ksud_integration.c
-index 3645660e..9f80733a 100644
+index 3645660e..174a8927 100644
 --- a/kernel/runtime/ksud_integration.c
 +++ b/kernel/runtime/ksud_integration.c
 @@ -10,7 +10,6 @@
@@ -2064,7 +2064,27 @@ index 3645660e..9f80733a 100644
  
  // clang-format off
  static const char KERNEL_SU_RC[] =
-@@ -144,37 +144,59 @@ fail:
+@@ -52,18 +52,7 @@ static void stop_execve_hook();
+ 
+ static struct work_struct stop_input_hook_work;
+ 
+-#define MAX_ARG_STRINGS 0x7FFFFFFF
+-struct user_arg_ptr {
+-#ifdef CONFIG_COMPAT
+-    bool is_compat;
+-#endif
+-    union {
+-        const char __user *const __user *native;
+-#ifdef CONFIG_COMPAT
+-        const compat_uptr_t __user *compat;
+-#endif
+-    } ptr;
+-};
++
+ 
+ static const char __user *get_user_arg_ptr(struct user_arg_ptr argv, int nr)
+ {
+@@ -144,37 +133,59 @@ fail:
      return false;
  }
  
@@ -2154,7 +2174,7 @@ index 3645660e..9f80733a 100644
  }
  
  static ssize_t (*orig_read)(struct file *, char __user *, size_t, loff_t *);
-@@ -190,323 +212,221 @@ const size_t ksu_rc_len = sizeof(KERNEL_SU_RC) - 1;
+@@ -190,323 +201,221 @@ const size_t ksu_rc_len = sizeof(KERNEL_SU_RC) - 1;
  
  static ssize_t read_proxy(struct file *file, char __user *buf, size_t count, loff_t *pos)
  {
@@ -2559,6 +2579,14 @@ index 3645660e..9f80733a 100644
 -    }
 -
 -    return ret;
+-}
+-
+-static int input_handle_event_handler_pre(struct kprobe *p, struct pt_regs *regs)
+-{
+-    unsigned int *type = (unsigned int *)&PT_REGS_PARM2(regs);
+-    unsigned int *code = (unsigned int *)&PT_REGS_PARM3(regs);
+-    int *value = (int *)&PT_REGS_CCALL_PARM4(regs);
+-    return ksu_handle_input_handle_event(type, code, value);
 +	static bool safe_mode = false;
 +	if (safe_mode) {
 +		// don't need to check again, userspace may call multiple times
@@ -2582,27 +2610,19 @@ index 3645660e..9f80733a 100644
 +	return false;
  }
  
--static int input_handle_event_handler_pre(struct kprobe *p, struct pt_regs *regs)
--{
--    unsigned int *type = (unsigned int *)&PT_REGS_PARM2(regs);
--    unsigned int *code = (unsigned int *)&PT_REGS_PARM3(regs);
--    int *value = (int *)&PT_REGS_CCALL_PARM4(regs);
--    return ksu_handle_input_handle_event(type, code, value);
--}
--
 -static struct kprobe input_event_kp = {
 -    .symbol_name = "input_event",
 -    .pre_handler = input_handle_event_handler_pre,
 -};
 -
 -static void do_stop_input_hook(struct work_struct *work)
-+void ksu_handle_vfs_fstat(int fd, loff_t *kstat_size_ptr)
- {
+-{
 -    unregister_kprobe(&input_event_kp);
 -}
 -
 -static void stop_init_rc_hook()
--{
++void ksu_handle_vfs_fstat(int fd, loff_t *kstat_size_ptr)
+ {
 -    ksu_syscall_table_unhook(__NR_read);
 -    ksu_syscall_table_unhook(__NR_fstat);
 -    pr_info("unregister init_rc syscall hook\n");
