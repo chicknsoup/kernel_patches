@@ -1,5 +1,5 @@
 diff --git a/kernel/Kbuild b/kernel/Kbuild
-index a762c917..c3a43bb0 100644
+index a762c917..01092f9b 100644
 --- a/kernel/Kbuild
 +++ b/kernel/Kbuild
 @@ -3,18 +3,7 @@ kernelsu-objs := core/init.o
@@ -21,7 +21,20 @@ index a762c917..c3a43bb0 100644
  kernelsu-objs += extras.o
  kernelsu-objs += tiny_sulog.o
  
-@@ -143,4 +132,14 @@ ccflags-y += -DKSU_NEW_DCACHE_FLUSH=$(KSU_NEW_DCACHE_FLUSH)
+@@ -48,6 +37,12 @@ kernelsu-objs += feature/adb_root.o
+ 
+ kernelsu-objs += feature/selinux_hide.o
+ 
++ifeq ($(CONFIG_ARM64),y)
++kernelsu-objs += hook/arm64/patch_memory.o
++else ifeq ($(CONFIG_X86_64),y)
++kernelsu-objs += hook/x86_64/patch_memory.o
++endif
++
+ ifdef KBUILD_EXTMOD
+ ifeq ($(CONFIG_KSU_DISABLE_MANAGER),y)
+ ccflags-y += -DCONFIG_KSU_DISABLE_MANAGER=1
+@@ -143,4 +138,14 @@ ccflags-y += -DKSU_NEW_DCACHE_FLUSH=$(KSU_NEW_DCACHE_FLUSH)
  ccflags-y += -Wno-strict-prototypes -Wno-int-conversion -Wno-gcc-compat -Wno-missing-prototypes
  ccflags-y += -Wno-declaration-after-statement -Wno-unused-function -Wno-unused-variable
  
@@ -334,7 +347,7 @@ index 3a48d8ce..5956083a 100644
  	pr_info("handle umount for uid: %d, pid: %d\n", new_uid, current->pid);
  
 diff --git a/kernel/feature/selinux_hide.c b/kernel/feature/selinux_hide.c
-index 36601198..f5f72ce7 100644
+index 36601198..a0ae4d80 100644
 --- a/kernel/feature/selinux_hide.c
 +++ b/kernel/feature/selinux_hide.c
 @@ -31,7 +31,7 @@
@@ -346,6 +359,15 @@ index 36601198..f5f72ce7 100644
  
  enum sel_inos {
      SEL_ROOT_INO = 2,
+@@ -74,7 +74,7 @@ static void (*context_struct_compute_av_fn)(struct policydb *policydb, struct co
+                                             struct context *tcontext, u16 tclass, struct av_decision *avd,
+                                             struct extended_perms *xperms) = NULL;
+ #else
+-static struct selinux_state fake_state;
++struct selinux_state fake_state;
+ #endif
+ 
+ static write_op_fn *context_write, *access_write;
 @@ -256,7 +256,7 @@ static void initialize_fake_status()
      }
  
