@@ -350,11 +350,12 @@ diff --git a/kernel/feature/selinux_hide.c b/kernel/feature/selinux_hide.c
 index 36601198..a0ae4d80 100644
 --- a/kernel/feature/selinux_hide.c
 +++ b/kernel/feature/selinux_hide.c
-@@ -31,7 +31,7 @@
+@@ -31,9 +31,9 @@
  
  static DEFINE_MUTEX(selinux_hide_mutex);
- static bool ksu_selinux_hide_enabled __read_mostly = false;
+-static bool ksu_selinux_hide_enabled __read_mostly = false;
 -static bool ksu_selinux_hide_running __read_mostly = false;
++bool ksu_selinux_hide_enabled __read_mostly = false;
 +bool ksu_selinux_hide_running __read_mostly = false;
  
  enum sel_inos {
@@ -368,6 +369,19 @@ index 36601198..a0ae4d80 100644
  #endif
  
  static write_op_fn *context_write, *access_write;
+@@ -245,9 +245,9 @@ static int __nocfi my_setprocattr(const char *name, void *value, size_t size)
+     return ((setprocattr_fn)selinux_setprocattr_hook.original)(name, value, size);
+ }
+ 
+-static DEFINE_STATIC_KEY_FALSE(fake_status_initialize_key);
+-static struct page *fake_status = NULL;
++DEFINE_STATIC_KEY_FALSE(fake_status_initialize_key);
++struct page *fake_status = NULL;
+ 
+-static void initialize_fake_status()
++void initialize_fake_status()
+ {
+     mutex_lock(&selinux_state.status_lock);
 @@ -256,7 +256,7 @@ static void initialize_fake_status()
      }
  
