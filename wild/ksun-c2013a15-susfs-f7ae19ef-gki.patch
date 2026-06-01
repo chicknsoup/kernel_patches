@@ -347,10 +347,11 @@ index 3a48d8ce..5956083a 100644
  	pr_info("handle umount for uid: %d, pid: %d\n", new_uid, current->pid);
  
 diff --git a/kernel/feature/selinux_hide.c b/kernel/feature/selinux_hide.c
-index 36601198..a0ae4d80 100644
+index 36601198..b5004528 100644
 --- a/kernel/feature/selinux_hide.c
 +++ b/kernel/feature/selinux_hide.c
-@@ -31,9 +31,9 @@
+@@ -30,8 +30,8 @@
+ #include "hook/lsm_hook.h"
  
  static DEFINE_MUTEX(selinux_hide_mutex);
 -static bool ksu_selinux_hide_enabled __read_mostly = false;
@@ -369,7 +370,7 @@ index 36601198..a0ae4d80 100644
  #endif
  
  static write_op_fn *context_write, *access_write;
-@@ -245,9 +245,9 @@ static int __nocfi my_setprocattr(const char *name, void *value, size_t size)
+@@ -242,10 +242,10 @@ call_orig:
      return ((setprocattr_fn)selinux_setprocattr_hook.original)(name, value, size);
  }
  
@@ -382,6 +383,7 @@ index 36601198..a0ae4d80 100644
 +void initialize_fake_status()
  {
      mutex_lock(&selinux_state.status_lock);
+     if (fake_status)
 @@ -256,7 +256,7 @@ static void initialize_fake_status()
      }
  
